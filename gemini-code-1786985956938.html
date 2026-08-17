@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ask Community — Ask, Learn, Connect, Collaborate & Build</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION HEADER -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('feed')">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md">
+                        ?
+                    </div>
+                    <div>
+                        <span class="text-xl font-black tracking-tight text-slate-900">Ask<span class="text-indigo-600">Community</span></span>
+                        <span class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Student & Tech Platform</span>
+                    </div>
+                </div>
+
+                <!-- Global Search Bar -->
+                <div class="flex-1 max-w-lg mx-6 hidden md:block">
+                    <div class="relative">
+                        <input type="text" id="globalSearchInput" onkeyup="handleGlobalSearch()" placeholder="Search questions, categories, tags, or topics..." class="w-full pl-10 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <!-- Action Buttons & User Profile -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="openAskModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2 rounded-xl shadow-sm transition-all flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        <span>Ask Question</span>
+                    </button>
+                    <button onclick="toggleNotifications()" class="relative p-2 text-slate-500 hover:text-indigo-600 rounded-lg hover:bg-slate-100 transition-all">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+                        <span id="notifBadge" class="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center space-x-2 pl-2 border-l border-slate-200 cursor-pointer" onclick="switchTab('profile')">
+                        <div class="w-9 h-9 bg-indigo-100 text-indigo-700 font-bold rounded-full flex items-center justify-center border border-indigo-200" id="headerAvatar">
+                            ST
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NOTIFICATION DROPDOWN MODAL -->
+    <div id="notifDropdown" class="hidden absolute right-12 top-16 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 p-4">
+        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+            <h3 class="font-bold text-slate-800 text-sm">Notifications</h3>
+            <span class="text-xs text-indigo-600 font-medium cursor-pointer" onclick="markNotificationsRead()">Mark all as read</span>
+        </div>
+        <div id="notifList" class="divide-y divide-slate-100 max-h-64 overflow-y-auto custom-scrollbar">
+            <!-- Dynamic Notifications -->
+        </div>
+    </div>
+
+    <!-- MAIN APP NAVIGATION BAR -->
+    <nav class="bg-white border-b border-slate-200 shadow-2xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex space-x-8 overflow-x-auto custom-scrollbar text-sm font-medium">
+                <button onclick="switchTab('feed')" id="tab-feed" class="py-3 px-1 border-b-2 border-indigo-600 text-indigo-600 font-semibold flex items-center space-x-2 whitespace-nowrap">
+                    <span>Questions & Feed</span>
+                </button>
+                <button onclick="switchTab('groups')" id="tab-groups" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Groups & Communities</span>
+                </button>
+                <button onclick="switchTab('teams')" id="tab-teams" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Teams & Collaborators</span>
+                </button>
+                <button onclick="switchTab('opportunities')" id="tab-opportunities" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Opportunities & Jobs</span>
+                </button>
+                <button onclick="switchTab('events')" id="tab-events" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Events</span>
+                </button>
+                <button onclick="switchTab('mentorship')" id="tab-mentorship" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Mentorship</span>
+                </button>
+                <button onclick="switchTab('matching')" id="tab-matching" class="py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap">
+                    <span>Co-Founder Match</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT BODY CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- VIEW 1: QUESTIONS FEED & SIDEBAR -->
+        <section id="view-feed" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Left Sidebar: Categories Filter -->
+            <div class="lg:col-span-1 space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+                    <h3 class="font-bold text-slate-900 text-sm mb-3 flex items-center justify-between">
+                        <span>Categories</span>
+                        <span class="text-xs text-indigo-600 cursor-pointer font-normal" onclick="filterByCategory('')">Reset</span>
+                    </h3>
+                    <input type="text" id="categorySearch" onkeyup="filterCategoryList()" placeholder="Filter category..." class="w-full px-3 py-1.5 mb-3 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                    <div id="categoryContainer" class="space-y-1 max-h-80 overflow-y-auto custom-scrollbar text-xs">
+                        <!-- Dynamic Categories -->
+                    </div>
+                </div>
+
+                <!-- Guidance Box -->
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl">
+                    <h4 class="font-bold text-indigo-900 text-xs uppercase tracking-wider mb-1">Community Mantra</h4>
+                    <p class="text-xs text-indigo-700 leading-relaxed">
+                        ASK &rarr; LEARN &rarr; CONNECT &rarr; COLLABORATE &rarr; BUILD
+                    </p>
+                </div>
+            </div>
+
+            <!-- Middle Feed Area -->
+            <div class="lg:col-span-3 space-y-4">
+                <!-- Sorting & Active Category Header -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold text-slate-500">Sort by:</span>
+                        <button onclick="sortQuestions('recent')" id="sort-recent" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600">Recent</button>
+                        <button onclick="sortQuestions('popular')" id="sort-popular" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Most Upvoted</button>
+                        <button onclick="sortQuestions('answered')" id="sort-answered" class="px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100">Most Answered</button>
+                    </div>
+                    <div id="activeCategoryBadge" class="hidden text-xs bg-indigo-100 text-indigo-700 font-semibold px-2.5 py-1 rounded-full flex items-center space-x-1">
+                        <span id="activeCategoryText">Category</span>
+                        <span class="cursor-pointer font-bold ml-1" onclick="filterByCategory('')">&times;</span>
+                    </div>
+                </div>
+
+                <!-- Questions List Container -->
+                <div id="questionsList" class="space-y-4">
+                    <!-- Dynamic Questions Injection -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 2: GROUPS & COMMUNITIES -->
+        <section id="view-groups" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Interest Groups & Communities</h2>
+                    <p class="text-xs text-slate-500 mt-1">Join specialized student and tech communities across various fields.</p>
+                </div>
+                <button onclick="alert('Create Group workflow active. Backend integration coming in next task.')" class="bg-indigo-600 text-white font-medium text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Create Group</button>
+            </div>
+            <div id="groupsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Groups -->
+            </div>
+        </section>
+
+        <!-- VIEW 3: TEAMS & COLLABORATORS -->
+        <section id="view-teams" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Find Team Collaborators</h2>
+                    <p class="text-xs text-slate-500 mt-1">Pitch startup ideas, hackathon projects, or academic research and assemble your team.</p>
+                </div>
+                <button onclick="alert('Create Team Request active.')" class="bg-indigo-600 text-white font-medium text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Post Team Request</button>
+            </div>
+            <div id="teamsList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamic Teams -->
+            </div>
+        </section>
+
+        <!-- VIEW 4: OPPORTUNITIES & JOBS -->
+        <section id="view-opportunities" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Jobs, Internships & Scholarships</h2>
+                    <p class="text-xs text-slate-500 mt-1">Explore verified career paths, volunteer roles, and academic funding.</p>
+                </div>
+                <button onclick="alert('Post Opportunity active.')" class="bg-indigo-600 text-white font-medium text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Post Opportunity</button>
+            </div>
+            <div id="opportunitiesList" class="space-y-4">
+                <!-- Dynamic Opportunities -->
+            </div>
+        </section>
+
+        <!-- VIEW 5: EVENTS -->
+        <section id="view-events" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Community Events & Workshops</h2>
+                    <p class="text-xs text-slate-500 mt-1">Attend online webinars, offline tech meetups, and hackathons.</p>
+                </div>
+                <button onclick="alert('Create Event active.')" class="bg-indigo-600 text-white font-medium text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Host Event</button>
+            </div>
+            <div id="eventsList" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Dynamic Events -->
+            </div>
+        </section>
+
+        <!-- VIEW 6: MENTORSHIP -->
+        <section id="view-mentorship" class="hidden space-y-6">
+            <div class="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900">Find a Mentor / Become a Mentor</h2>
+                    <p class="text-xs text-slate-500 mt-1">Get 1-on-1 guidance from experienced industry professionals and senior students.</p>
+                </div>
+                <button onclick="alert('Become a Mentor registration active.')" class="bg-indigo-600 text-white font-medium text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Apply as Mentor</button>
+            </div>
+            <div id="mentorsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Dynamic Mentors -->
+            </div>
+        </section>
+
+        <!-- VIEW 7: CO-FOUNDER & BUSINESS MATCHING -->
+        <section id="view-matching" class="hidden space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <h2 class="text-xl font-bold text-slate-900">Co-Founder & Business Partner Matching</h2>
+                <p class="text-xs text-slate-500 mt-1 mb-4">Connect with high-value partners tailored to your tech stack, business vision, and complementary skills.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-slate-100 pt-4">
+                    <div class="p-4 bg-slate-50 rounded-xl">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Your Industry Focus</label>
+                        <input type="text" value="Artificial Intelligence / Web3" class="w-full text-xs p-2 bg-white border rounded-lg">
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Skills You Need</label>
+                        <input type="text" value="Backend Engineering, Sales" class="w-full text-xs p-2 bg-white border rounded-lg">
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl flex items-end">
+                        <button onclick="runMatchmaking()" class="w-full bg-indigo-600 text-white font-medium text-xs py-2.5 rounded-xl hover:bg-indigo-700">Find Matches</button>
+                    </div>
+                </div>
+            </div>
+            <div id="matchesList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Dynamic Matches -->
+            </div>
+        </section>
+
+        <!-- VIEW 8: USER PROFILE -->
+        <section id="view-profile" class="hidden space-y-6">
+            <div id="profileContainer" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-2xs">
+                <!-- Dynamic Profile Data -->
+            </div>
+        </section>
+    </main>
+
+    <!-- QUESTION DETAIL MODAL DRAWER -->
+    <div id="questionModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex justify-end">
+        <div class="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col overflow-hidden">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <span id="modalCategoryTag" class="text-xs font-semibold px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full">Category</span>
+                <button onclick="closeQuestionModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <!-- Modal Scrollable Content -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-6" id="modalQuestionBody">
+                <!-- Dynamic Question Info -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ASK QUESTION MODAL -->
+    <div id="askModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div class="w-full max-w-xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200">
+            <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-900 text-sm">Post a Question to Community</h3>
+                <button onclick="closeAskModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg">&times;</button>
+            </div>
+            <form onsubmit="handleAskSubmit(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Question Title *</label>
+                    <input type="text" id="askTitle" required placeholder="e.g., What is the best strategy to structure React components in Next.js?" class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Category *</label>
+                    <select id="askCategory" required class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <!-- Dynamic full categories option list -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Detailed Explanation / Context *</label>
+                    <textarea id="askBody" required rows="4" placeholder="Provide all necessary code snippets, background info, or specific details..." class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Tags (Comma Separated)</label>
+                    <input type="text" id="askTags" placeholder="e.g., react, nextjs, frontend" class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="askAnonymous" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <label for="askAnonymous" class="text-xs text-slate-600 font-medium">Post Anonymously</label>
+                </div>
+                <div class="pt-2 flex justify-end space-x-3">
+                    <button type="button" onclick="closeAskModal()" class="px-4 py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 rounded-xl">Cancel</button>
+                    <button type="submit" class="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-sm">Post Question</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT APPLICATION LOGIC -->
+    <script>
+        // FULL CATEGORY LIST (50+ CATEGORIES AS DEFINED)
+        const ALL_CATEGORIES = [
+            "Education", "Technology", "AI", "Programming", "Engineering", "Science", "Mathematics", 
+            "Business", "Entrepreneurship", "Startups", "Finance", "Economics", "Career", "Jobs", 
+            "Internships", "Leadership", "Personal Development", "Skills", "Money Making", "Freelancing", 
+            "Politics", "Society", "Public Policy", "Current Affairs", "Ethiopia", "History", "Culture", 
+            "Relationships", "Friendship", "Dating", "Family", "Health", "Fitness", "Sports", "Football", 
+            "Entertainment", "Movies", "Music", "Dance", "Art", "Photography", "Writing", "Books", 
+            "Gaming", "Travel", "Languages", "Agriculture", "Environment", "Community", "Volunteering", 
+            "Religion", "Lifestyle", "Law", "Media", "Communication", "Research", "Innovation", "Youth", 
+            "Student Life", "University", "High School", "Other"
+        ];
+
+        // LOCAL INITIAL STATE DATA STORE
+        let appState = {
+            currentUser: {
+                id: "usr_001",
+                username: "solomontarrekegn",
+                fullName: "Solomon Tarekegn",
+                bio: "Full-Stack Web Developer & AI Automation Enthusiast",
+                education: "Jigjiga University",
+                profession: "Software Engineer",
+                skills: ["React", "Next.js", "Node.js", "PostgreSQL", "n8n", "Tailwind CSS"],
+                interests: ["AI Systems", "Web Development", "Scholarships"],
+                location: "Ethiopia"
+            },
+            currentCategoryFilter: "",
+            currentSort: "recent",
+            searchQuery: "",
+            questions: [
+                {
+                    id: "q_1",
+                    title: "How to effectively manage state between Next.js Server Components and Client Components?",
+                    body: "I am building a web platform with Next.js 14 App Router. I need guidance on keeping server fetched data in sync with client interactive components without causing unnecessary re-renders.",
+                    category: "Programming",
+                    tags: ["nextjs", "react", "javascript", "frontend"],
+                    author: "Solomon Tarekegn",
+                    isAnonymous: false,
+                    upvotes: 24,
+                    answersCount: 2,
+                    createdAt: "2 hours ago",
+                    userVoted: 0,
+                    answers: [
+                        {
+                            id: "a_1",
+                            author: "Eleni M.",
+                            body: "Use Server Actions for mutation and keep high-frequency interactive state inside Client Components with Zustand or React Context.",
+                            upvotes: 12,
+                            createdAt: "1 hour ago",
+                            replies: [
+                                { author: "Solomon Tarekegn", body: "Thanks Eleni! Zustand works like a charm for this.", createdAt: "30 mins ago" }
+                            ]
+                        },
+                        {
+                            id: "a_2",
+                            author: "Abebe K.",
+                            body: "You can also rely on React Query (TanStack Query) on the client side for smart caching.",
+                            upvotes: 5,
+                            createdAt: "45 mins ago",
+                            replies: []
+                        }
+                    ]
+                },
+                {
+                    id: "q_2",
+                    title: "What are the essential n8n workflows for automating student application tracking?",
+                    body: "Looking to set up an automated pipeline that parses email notifications for scholarship application status updates and logs them to PostgreSQL.",
+                    category: "AI",
+                    tags: ["automation", "n8n", "workflow", "ai"],
+                    author: "Anonymous Student",
+                    isAnonymous: true,
+                    upvotes: 18,
+                    answersCount: 1,
+                    createdAt: "5 hours ago",
+                    userVoted: 0,
+                    answers: [
+                        {
+                            id: "a_3",
+                            author: "Sella Tech Admin",
+                            body: "Set up an Email Trigger node in n8n listening for IMAP, pipe the text into an OpenAI node to parse structured JSON, then insert directly using the Postgres node.",
+                            upvotes: 8,
+                            createdAt: "3 hours ago",
+                            replies: []
+                        }
+                    ]
+                }
+            ],
+            groups: [
+                { name: "AI Students Ethiopia", category: "AI", members: 450, desc: "A vibrant community of AI builders, researchers, and students sharing insights." },
+                { name: "Student Entrepreneurs", category: "Entrepreneurship", members: 280, desc: "Building the next generation of startups from university dorms." },
+                { name: "Ethiopia Developers Hub", category: "Programming", members: 890, desc: "Full-stack code reviews, career updates, and hackathon prep." }
+            ],
+            teams: [
+                { title: "Building an AI-Powered Hospitality Web App", roles: ["Backend Engineer", "UI/UX Designer"], skills: ["Node.js", "Tailwind", "PostgreSQL"], commitment: "10 hrs/week" },
+                { title: "University Scholarship Finder Bot", roles: ["Python Dev", "Data Scraper"], skills: ["Python", "FastAPI", "n8n"], commitment: "5 hrs/week" }
+            ],
+            opportunities: [
+                { title: "Junior Full-Stack Web Developer", org: "Sella Tech Solutions", type: "Job", location: "Remote / Ethiopia", deadline: "Aug 30, 2026" },
+                { title: "International Student Research Grant", org: "Global Tech Foundation", type: "Scholarship", location: "Global", deadline: "Sept 15, 2026" }
+            ],
+            events: [
+                { title: "Full-Stack Development Workshop", date: "Aug 22, 2026", time: "3:00 PM EAT", location: "Online (Google Meet)", category: "Programming" },
+                { title: "AI Automation & n8n Masterclass", date: "Aug 28, 2026", time: "5:00 PM EAT", location: "Tech Park, Addis Ababa", category: "AI" }
+            ],
+            mentors: [
+                { name: "Dr. Dawit T.", title: "Senior AI Researcher", expertise: ["AI", "Machine Learning", "Research"], availability: "4 hrs/week" },
+                { name: "Solomon Tarekegn", title: "Full-Stack Mentor", expertise: ["React", "Next.js", "Web Dev"], availability: "6 hrs/week" }
+            ],
+            notifications: [
+                { id: "n1", text: "Eleni M. answered your question on Next.js State Management.", time: "1 hour ago", read: false },
+                { id: "n2", text: "Welcome to Ask Community! Complete your profile to get matched.", time: "1 day ago", read: false }
+            ]
+        };
+
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCategorySidebar();
+            renderAskModalCategorySelect();
+            renderQuestionsFeed();
+            renderGroupsView();
+            renderTeamsView();
+            renderOpportunitiesView();
+            renderEventsView();
+            renderMentorsView();
+            renderMatchesView();
+            renderProfileView();
+            renderNotifications();
+        });
+
+        // NAVIGATION TAB SWITCHING
+        function switchTab(tabName) {
+            const tabs = ['feed', 'groups', 'teams', 'opportunities', 'events', 'mentorship', 'matching', 'profile'];
+            tabs.forEach(t => {
+                const navBtn = document.getElementById(`tab-${t}`);
+                const viewSec = document.getElementById(`view-${t}`);
+                if (navBtn && viewSec) {
+                    if (t === tabName) {
+                        navBtn.className = "py-3 px-1 border-b-2 border-indigo-600 text-indigo-600 font-semibold flex items-center space-x-2 whitespace-nowrap";
+                        viewSec.classList.remove('hidden');
+                    } else {
+                        navBtn.className = "py-3 px-1 border-b-2 border-transparent text-slate-600 hover:text-indigo-600 flex items-center space-x-2 whitespace-nowrap";
+                        viewSec.classList.add('hidden');
+                    }
+                }
+            });
+        }
+
+        // RENDER CATEGORY SIDEBAR
+        function renderCategorySidebar() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = ALL_CATEGORIES.map(cat => `
+                <div onclick="filterByCategory('${cat}')" class="px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-all">
+                    <span class="text-slate-700 hover:text-indigo-600 font-medium">${cat}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderAskModalCategorySelect() {
+            const select = document.getElementById('askCategory');
+            select.innerHTML = ALL_CATEGORIES.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+        }
+
+        function filterCategoryList() {
+            const query = document.getElementById('categorySearch').value.toLowerCase();
+            const container = document.getElementById('categoryContainer');
+            const filtered = ALL_CATEGORIES.filter(c => c.toLowerCase().includes(query));
+            container.innerHTML = filtered.map(cat => `
+                <div onclick="filterByCategory('${cat}')" class="px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 cursor-pointer flex justify-between items-center transition-all">
+                    <span class="text-slate-700 hover:text-indigo-600 font-medium">${cat}</span>
+                </div>
+            `).join('');
+        }
+
+        function filterByCategory(cat) {
+            appState.currentCategoryFilter = cat;
+            const badge = document.getElementById('activeCategoryBadge');
+            const text = document.getElementById('activeCategoryText');
+            if (cat) {
+                text.innerText = cat;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+            renderQuestionsFeed();
+        }
+
+        // QUESTIONS FEED LOGIC
+        function sortQuestions(sortType) {
+            appState.currentSort = sortType;
+            ['recent', 'popular', 'answered'].forEach(s => {
+                const btn = document.getElementById(`sort-${s}`);
+                if (s === sortType) {
+                    btn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-600";
+                } else {
+                    btn.className = "px-3 py-1 rounded-lg text-xs font-medium text-slate-600 hover:bg-slate-100";
+                }
+            });
+            renderQuestionsFeed();
+        }
+
+        function handleGlobalSearch() {
+            appState.searchQuery = document.getElementById('globalSearchInput').value.toLowerCase();
+            renderQuestionsFeed();
+        }
+
+        function renderQuestionsFeed() {
+            const list = document.getElementById('questionsList');
+            let filtered = appState.questions.filter(q => {
+                const matchCat = !appState.currentCategoryFilter || q.category === appState.currentCategoryFilter;
+                const matchSearch = !appState.searchQuery || 
+                    q.title.toLowerCase().includes(appState.searchQuery) || 
+                    q.body.toLowerCase().includes(appState.searchQuery) || 
+                    q.category.toLowerCase().includes(appState.searchQuery) ||
+                    q.tags.some(t => t.toLowerCase().includes(appState.searchQuery));
+                return matchCat && matchSearch;
+            });
+
+            if (appState.currentSort === 'popular') {
+                filtered.sort((a, b) => b.upvotes - a.upvotes);
+            } else if (appState.currentSort === 'answered') {
+                filtered.sort((a, b) => b.answersCount - a.answersCount);
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 text-center">
+                        <p class="text-sm font-semibold text-slate-500">No questions found matching your criteria.</p>
+                        <button onclick="openAskModal()" class="mt-3 inline-block bg-indigo-600 text-white text-xs px-4 py-2 rounded-xl">Ask the first question!</button>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = filtered.map(q => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs hover:border-indigo-200 transition-all">
+                    <div class="flex items-start space-x-4">
+                        <!-- Upvote Counter -->
+                        <div class="flex flex-col items-center bg-slate-50 border border-slate-200 rounded-xl p-2 min-w-[48px]">
+                            <button onclick="handleVote('${q.id}', 1)" class="text-slate-400 hover:text-indigo-600 font-bold transition-all">&uarr;</button>
+                            <span class="text-xs font-bold text-slate-800 my-0.5">${q.upvotes}</span>
+                            <button onclick="handleVote('${q.id}', -1)" class="text-slate-400 hover:text-indigo-600 font-bold transition-all">&darr;</button>
+                        </div>
+                        
+                        <!-- Question Summary -->
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-2 mb-1">
+                                <span class="text-[11px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md">${q.category}</span>
+                                <span class="text-xs text-slate-400">&bull;</span>
+                                <span class="text-xs text-slate-500">${q.isAnonymous ? 'Anonymous' : q.author}</span>
+                                <span class="text-xs text-slate-400">&bull;</span>
+                                <span class="text-xs text-slate-400">${q.createdAt}</span>
+                            </div>
+                            <h3 onclick="openQuestionModal('${q.id}')" class="text-base font-bold text-slate-900 hover:text-indigo-600 cursor-pointer transition-all line-clamp-2">${q.title}</h3>
+                            <p class="text-xs text-slate-600 mt-1 line-clamp-2">${q.body}</p>
+                            
+                            <!-- Tags & Comments Count -->
+                            <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
+                                <div class="flex flex-wrap gap-1">
+                                    ${q.tags.map(t => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">#${t}</span>`).join('')}
+                                </div>
+                                <div onclick="openQuestionModal('${q.id}')" class="flex items-center space-x-1 text-xs font-medium text-slate-500 hover:text-indigo-600 cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                                    <span>${q.answersCount} Answers</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // VOTING HANDLER
+        function handleVote(qId, direction) {
+            const q = appState.questions.find(item => item.id === qId);
+            if (q) {
+                if (q.userVoted === direction) {
+                    q.upvotes -= direction;
+                    q.userVoted = 0;
+                } else {
+                    q.upvotes += (direction - q.userVoted);
+                    q.userVoted = direction;
+                }
+                renderQuestionsFeed();
+            }
+        }
+
+        // QUESTION DETAIL MODAL
+        function openQuestionModal(qId) {
+            const q = appState.questions.find(item => item.id === qId);
+            if (!q) return;
+
+            document.getElementById('modalCategoryTag').innerText = q.category;
+            const modalBody = document.getElementById('modalQuestionBody');
+
+            modalBody.innerHTML = `
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 mb-2">${q.title}</h2>
+                    <div class="flex items-center space-x-2 text-xs text-slate-500 mb-4">
+                        <span>Posted by <strong>${q.isAnonymous ? 'Anonymous' : q.author}</strong></span>
+                        <span>&bull;</span>
+                        <span>${q.createdAt}</span>
+                    </div>
+                    <p class="text-sm text-slate-700 whitespace-pre-line leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">${q.body}</p>
+                </div>
+
+                <!-- Post Answer Form -->
+                <div class="border-t border-slate-200 pt-4">
+                    <h4 class="font-bold text-xs text-slate-800 uppercase tracking-wider mb-2">Your Answer</h4>
+                    <textarea id="modalAnswerText" rows="3" placeholder="Write a constructive answer..." class="w-full p-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="checkbox" id="modalAnswerAnon" class="rounded border-slate-300">
+                            <label for="modalAnswerAnon" class="text-xs text-slate-600">Answer Anonymously</label>
+                        </div>
+                        <button onclick="submitAnswer('${q.id}')" class="bg-indigo-600 text-white font-semibold text-xs px-4 py-2 rounded-xl hover:bg-indigo-700">Submit Answer</button>
+                    </div>
+                </div>
+
+                <!-- Answers Thread -->
+                <div class="border-t border-slate-200 pt-4 space-y-4">
+                    <h3 class="font-bold text-slate-900 text-sm">${q.answers.length} Answers</h3>
+                    ${q.answers.map(ans => `
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-indigo-700">${ans.author}</span>
+                                <span class="text-[10px] text-slate-400">${ans.createdAt}</span>
+                            </div>
+                            <p class="text-xs text-slate-700 leading-relaxed">${ans.body}</p>
+                            
+                            <!-- Nested Replies -->
+                            <div class="pl-4 border-l-2 border-indigo-200 space-y-2 pt-2">
+                                ${ans.replies.map(rep => `
+                                    <div class="bg-white p-2.5 rounded-lg border border-slate-100 text-[11px]">
+                                        <span class="font-bold text-slate-800">${rep.author}:</span>
+                                        <span class="text-slate-600">${rep.body}</span>
+                                    </div>
+                                `).join('')}
+                                <div class="flex space-x-2 pt-1">
+                                    <input type="text" id="replyInput_${ans.id}" placeholder="Write a reply..." class="flex-1 px-2.5 py-1 text-[11px] border border-slate-200 rounded-lg bg-white">
+                                    <button onclick="submitReply('${q.id}', '${ans.id}')" class="px-3 py-1 bg-slate-800 text-white text-[11px] font-semibold rounded-lg">Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            document.getElementById('questionModal').classList.remove('hidden');
+        }
+
+        function closeQuestionModal() {
+            document.getElementById('questionModal').classList.add('hidden');
+        }
+
+        function submitAnswer(qId) {
+            const q = appState.questions.find(item => item.id === qId);
+            const body = document.getElementById('modalAnswerText').value.trim();
+            const isAnon = document.getElementById('modalAnswerAnon').checked;
+
+            if (!body) return;
+
+            q.answers.push({
+                id: 'a_' + Date.now(),
+                author: isAnon ? 'Anonymous' : appState.currentUser.fullName,
+                body: body,
+                upvotes: 0,
+                createdAt: 'Just now',
+                replies: []
+            });
+            q.answersCount = q.answers.length;
+
+            renderQuestionsFeed();
+            openQuestionModal(qId);
+        }
+
+        function submitReply(qId, ansId) {
+            const q = appState.questions.find(item => item.id === qId);
+            const ans = q.answers.find(a => a.id === ansId);
+            const replyText = document.getElementById(`replyInput_${ansId}`).value.trim();
+
+            if (!replyText) return;
+
+            ans.replies.push({
+                author: appState.currentUser.fullName,
+                body: replyText,
+                createdAt: 'Just now'
+            });
+
+            openQuestionModal(qId);
+        }
+
+        // ASK QUESTION MODAL HANDLERS
+        function openAskModal() {
+            document.getElementById('askModal').classList.remove('hidden');
+        }
+
+        function closeAskModal() {
+            document.getElementById('askModal').classList.add('hidden');
+        }
+
+        function handleAskSubmit(event) {
+            event.preventDefault();
+            const title = document.getElementById('askTitle').value.trim();
+            const category = document.getElementById('askCategory').value;
+            const body = document.getElementById('askBody').value.trim();
+            const tagsRaw = document.getElementById('askTags').value;
+            const isAnon = document.getElementById('askAnonymous').checked;
+
+            const tags = tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(t => t.length > 0);
+
+            const newQ = {
+                id: 'q_' + Date.now(),
+                title: title,
+                body: body,
+                category: category,
+                tags: tags.length ? tags : ['general'],
+                author: isAnon ? 'Anonymous Student' : appState.currentUser.fullName,
+                isAnonymous: isAnon,
+                upvotes: 1,
+                answersCount: 0,
+                createdAt: 'Just now',
+                userVoted: 1,
+                answers: []
+            };
+
+            appState.questions.unshift(newQ);
+            closeAskModal();
+            renderQuestionsFeed();
+            switchTab('feed');
+
+            // Clear inputs
+            document.getElementById('askTitle').value = '';
+            document.getElementById('askBody').value = '';
+            document.getElementById('askTags').value = '';
+        }
+
+        // VIEW RENDERERS FOR SUB-SECTIONS
+        function renderGroupsView() {
+            const container = document.getElementById('groupsList');
+            container.innerHTML = appState.groups.map(g => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded-md uppercase">${g.category}</span>
+                    <h3 class="font-bold text-slate-900 text-base mt-2">${g.name}</h3>
+                    <p class="text-xs text-slate-600 mt-1">${g.desc}</p>
+                    <div class="flex justify-between items-center mt-4 pt-3 border-t border-slate-100">
+                        <span class="text-xs text-slate-400 font-medium">${g.members} Members</span>
+                        <button onclick="alert('Joined group!')" class="px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700">Join Group</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderTeamsView() {
+            const container = document.getElementById('teamsList');
+            container.innerHTML = appState.teams.map(t => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                    <h3 class="font-bold text-slate-900 text-base">${t.title}</h3>
+                    <div class="flex flex-wrap gap-1">
+                        ${t.skills.map(s => `<span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-md font-medium">${s}</span>`).join('')}
+                    </div>
+                    <div class="text-xs text-slate-500">
+                        <strong>Roles needed:</strong> ${t.roles.join(', ')}
+                    </div>
+                    <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                        <span class="text-xs text-slate-400">${t.commitment}</span>
+                        <button onclick="alert('Application sent to team leader!')" class="px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded-lg hover:bg-indigo-700">Apply to Join</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderOpportunitiesView() {
+            const container = document.getElementById('opportunitiesList');
+            container.innerHTML = appState.opportunities.map(o => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs flex flex-wrap justify-between items-center gap-4">
+                    <div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 bg-green-50 text-green-700 rounded-md uppercase">${o.type}</span>
+                        <h3 class="font-bold text-slate-900 text-base mt-1">${o.title}</h3>
+                        <p class="text-xs text-slate-500">${o.org} &bull; ${o.location}</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="block text-[11px] text-slate-400 mb-2">Deadline: ${o.deadline}</span>
+                        <button onclick="alert('Redirecting to application form...')" class="px-4 py-1.5 bg-slate-900 text-white text-xs font-semibold rounded-xl hover:bg-slate-800">Apply Now</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderEventsView() {
+            const container = document.getElementById('eventsList');
+            container.innerHTML = appState.events.map(e => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                    <span class="text-[10px] font-bold px-2 py-0.5 bg-purple-50 text-purple-700 rounded-md uppercase">${e.category}</span>
+                    <h3 class="font-bold text-slate-900 text-base">${e.title}</h3>
+                    <p class="text-xs text-slate-500">${e.date} &bull; ${e.time}</p>
+                    <p class="text-xs text-slate-600">${e.location}</p>
+                    <button onclick="alert('RSVP Confirmed!')" class="w-full mt-2 py-2 bg-indigo-50 text-indigo-600 text-xs font-bold rounded-xl hover:bg-indigo-100">RSVP / Register</button>
+                </div>
+            `).join('');
+        }
+
+        function renderMentorsView() {
+            const container = document.getElementById('mentorsList');
+            container.innerHTML = appState.mentors.map(m => `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-indigo-600 text-white font-bold rounded-full flex items-center justify-center text-sm">
+                            ${m.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-900 text-sm">${m.name}</h3>
+                            <p class="text-xs text-slate-500">${m.title}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-1">
+                        ${m.expertise.map(e => `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">${e}</span>`).join('')}
+                    </div>
+                    <button onclick="alert('Mentorship session request sent!')" class="w-full py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700">Request Mentorship</button>
+                </div>
+            `).join('');
+        }
+
+        function renderMatchesView() {
+            const container = document.getElementById('matchesList');
+            container.innerHTML = `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-2">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-slate-900 text-sm">Abebe Tech Visionary</h3>
+                        <span class="text-xs font-bold text-green-600">95% Match</span>
+                    </div>
+                    <p class="text-xs text-slate-600">Full-stack specialist looking for a business lead to commercialize an automated workflow product.</p>
+                    <div class="pt-2 flex space-x-2">
+                        <button onclick="alert('Connection requested!')" class="flex-1 bg-indigo-600 text-white py-1.5 rounded-xl text-xs font-bold">Connect</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function runMatchmaking() {
+            renderMatchesView();
+            alert('Matchmaking algorithms executed based on your skills & profile requirements.');
+        }
+
+        function renderProfileView() {
+            const container = document.getElementById('profileContainer');
+            const u = appState.currentUser;
+            container.innerHTML = `
+                <div class="flex items-start justify-between border-b border-slate-100 pb-6">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-indigo-600 text-white font-black text-2xl rounded-2xl flex items-center justify-center">
+                            ST
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-slate-900">${u.fullName}</h2>
+                            <p class="text-xs text-slate-500">@${u.username} &bull; ${u.profession} &bull; ${u.location}</p>
+                            <p class="text-xs text-slate-700 mt-1">${u.bio}</p>
+                        </div>
+                    </div>
+                    <button onclick="alert('Profile editor active.')" class="px-3 py-1.5 border border-slate-200 text-xs font-semibold text-slate-700 rounded-xl hover:bg-slate-50">Edit Profile</button>
+                </div>
+                <div class="pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Technical Skills</h4>
+                        <div class="flex flex-wrap gap-1">
+                            ${u.skills.map(s => `<span class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg font-medium">${s}</span>`).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Interests & Academic Focus</h4>
+                        <div class="flex flex-wrap gap-1">
+                            ${u.interests.map(i => `<span class="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg font-medium">${i}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // NOTIFICATIONS SYSTEM
+        function toggleNotifications() {
+            const dropdown = document.getElementById('notifDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function renderNotifications() {
+            const list = document.getElementById('notifList');
+            const unread = appState.notifications.filter(n => !n.read).length;
+            document.getElementById('notifBadge').style.display = unread > 0 ? 'block' : 'none';
+
+            list.innerHTML = appState.notifications.map(n => `
+                <div class="py-2.5 text-xs space-y-0.5">
+                    <p class="text-slate-800 font-medium">${n.text}</p>
+                    <span class="text-[10px] text-slate-400 block">${n.time}</span>
+                </div>
+            `).join('');
+        }
+
+        function markNotificationsRead() {
+            appState.notifications.forEach(n => n.read = true);
+            renderNotifications();
+        }
+    </script>
+</body>
+</html>
