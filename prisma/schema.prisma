@@ -1,0 +1,38 @@
+# Prisma schema
+
+// For local development this schema uses SQLite. For production change the provider to "postgresql" and update DATABASE_URL in .env
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  createdAt DateTime @default(now())
+  questions Question[]
+}
+
+model Category {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  questions Question[]
+}
+
+model Question {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  author     User?    @relation(fields: [authorId], references: [id])
+  authorId   String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  categoryId Int?
+}
