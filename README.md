@@ -1,6 +1,6 @@
 # Ask Community — README
 
-This repository contains a scaffold for the Ask Community platform (Next.js + Prisma + Tailwind).
+This repository contains the scaffold for the Ask Community platform (Next.js + Prisma + Tailwind).
 
 Prerequisites
 - Node 18+ (Node 20 recommended)
@@ -23,13 +23,17 @@ Quick start (local development using SQLite)
    npm run dev
 
 Prisma (PostgreSQL production)
-- The Prisma schema is written to be PostgreSQL-compatible for production. For production use:
-  1. Set DATABASE_URL in your environment to your PostgreSQL DSN (example in .env.example).
-  2. Update prisma/schema.prisma datasource provider to "postgresql" (search for the datasource block). Do not attempt to dynamically switch providers at runtime — change the provider and run appropriate migrations.
-  3. Run migrations: npx prisma migrate deploy (or npx prisma migrate dev --name init for local testing against Postgres).
+- The Prisma schema in this branch is PostgreSQL-first (provider = "postgresql"). To run locally with SQLite for quick development you must:
+  1. Edit prisma/schema.prisma datasource provider to "sqlite".
+  2. Set DATABASE_URL in your local .env or .env.local to: DATABASE_URL="file:./dev.db"
+  3. Run: npx prisma db push
+
+- Do NOT attempt to switch providers dynamically in code. Change the provider manually for local dev and verify migrations/ db push as needed.
 
 Authentication
-- A NextAuth skeleton is included (App Router). To enable providers you must set NEXTAUTH_SECRET and provider credentials (e.g., GITHUB_ID, GITHUB_SECRET or EMAIL_SERVER + EMAIL_FROM).
+- A NextAuth skeleton (v4) is included using the Prisma adapter. The auth route is the App Router route at `app/api/auth/[...nextauth]/route.ts`.
+- To enable providers you must set NEXTAUTH_SECRET and provider credentials (e.g., GITHUB_ID, GITHUB_SECRET) or EMAIL_SERVER + EMAIL_FROM.
+- Type declarations are provided to include user.id on the session object. This is a compile-time augmentation only.
 
 Scripts
 - dev: start dev server
@@ -40,10 +44,10 @@ Scripts
 - prisma:seed: run seed script
 
 CI
-- A lightweight GitHub Actions workflow runs on pushes to scaffold and PRs to main to run dependency install, prisma generate, and TypeScript typecheck.
+- A lightweight GitHub Actions workflow (ci.yml) is added to run on scaffold pushes and PRs to main. It installs dependencies (npm install), runs npx prisma generate, and runs TypeScript typecheck (npx tsc --noEmit).
 
 Known limitations
-- This scaffold is statically validated but not runtime-tested in this environment. Please run the local steps above and paste any errors for fixes.
+- This scaffold is statically validated in this environment but not runtime-tested. Please run the local steps above and paste any errors for fixes.
 - NextAuth providers require runtime configuration and secure secrets (NEXTAUTH_SECRET). The auth skeleton is provided but provider configuration and email server setup are required before sign-in flows work.
 
 Contributing
